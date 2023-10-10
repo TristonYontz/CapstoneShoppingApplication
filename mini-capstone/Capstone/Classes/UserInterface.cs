@@ -25,15 +25,6 @@ namespace Capstone.Classes
         /// in any other class
         /// 
         /// </summary>
-        private void DisplayMenu()
-        {
-            Console.WriteLine();
-            Console.WriteLine();
-            Console.WriteLine("Welcome, please enter a number");
-            Console.WriteLine("(1) Show Inventory");
-            Console.WriteLine("(2) Make Sale");
-            Console.WriteLine("(3) Quit");
-        }
         public void Run()
         {
             inventory = store.StoreInventory();
@@ -59,7 +50,15 @@ namespace Capstone.Classes
                 }
             }
         }
-
+        private void DisplayMenu()
+        {
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine("Welcome, please enter a number");
+            Console.WriteLine("(1) Show Inventory");
+            Console.WriteLine("(2) Make Sale");
+            Console.WriteLine("(3) Quit");
+        }
         private void ShowInventory()
         {
 
@@ -76,16 +75,12 @@ namespace Capstone.Classes
                 {
                     temp.Add(item);
                 }
-
                 temp = temp.OrderBy(x => x.Id).ToList();
-
                 foreach (Item value in temp)
                 {
                     Console.WriteLine(value);
                 }
             }
-
-
         }
         private void DisplayHeaderInventory()
         {
@@ -96,7 +91,6 @@ namespace Capstone.Classes
             string price = "Price";
             Console.WriteLine($"{id.PadRight(5)}{name.PadRight(20)}{wrapper.PadRight(10)}{qty.PadRight(10)}{price.PadRight(10)}");
         }
-
         private void DisplaySubMenu()
         {
             Console.WriteLine();
@@ -122,24 +116,17 @@ namespace Capstone.Classes
                     break;
             }
         }
-
         private void TakeMoney()
         {
             Console.WriteLine("Deposit up to $100.");
             bool isInputValid = false;
-
-
             while (!isInputValid)
             {
-
-
                 try
                 {
-
-
                     string userResponse = Console.ReadLine();
                     decimal deposit = decimal.Parse(userResponse);
-                    if (deposit + store.Balance < 1000.00m && deposit <= 100.00m)
+                    if (store.CheckBalance(deposit))
                     {
                         store.TakeMoney(deposit);
                         audit.WritingAudit(store.MoneyRecevied(deposit));
@@ -157,116 +144,65 @@ namespace Capstone.Classes
                     Console.WriteLine("Invalid input. Please enter digits");
                     continue;
                 }
-
             }
         }
         private void SelectProducts()
         {
             ShowInventory();
+            Console.WriteLine();
             Console.WriteLine("Please enter product Id");
             string userInputId = Console.ReadLine().ToUpper();
-            if (!CheckStock(inventory.ContainsKey(userInputId)))
+            if(!store.CheckInventory(inventory, userInputId))
             {
+                Console.WriteLine("Product not found");
                 return;
             }
             Console.WriteLine("Please enter desired quantity");
             string userInputQuantity = Console.ReadLine();
             int quantitySelected = int.Parse(userInputQuantity);
-            if (!checkAvailibility(inventory[userInputId].Quantity > 0 && inventory[userInputId].Quantity <= 100))
+            if (!store.CheckAvailability(inventory, userInputId))
             {
+                Console.WriteLine("Sorry the product is sold out");
                 return;
             }
-            if (!EnoughStock(quantitySelected <= inventory[userInputId].Quantity))
+            if(!store.EnoughStock(inventory, userInputId, quantitySelected))
             {
+                Console.WriteLine("Insufficient stock");
                 return;
             }
-            if (!Transaction(store.Balance > inventory[userInputId].Price && store.Balance > 0))
+            if(!store.EnoughMoney(inventory, userInputId, quantitySelected))
             {
+                Console.WriteLine("Insufficient funds");
                 return;
             }
             store.AddToCart(inventory[userInputId], quantitySelected);
-            audit.WritingAudit($"{DateTime.UtcNow} {quantitySelected} {inventory[userInputId].Name} {inventory[userInputId].Id} {inventory[userInputId].Price * quantitySelected} {store.Balance}");
+            audit.WritingAudit($"{DateTime.UtcNow} {quantitySelected} {inventory[userInputId].Name} {inventory[userInputId].Id}  {inventory[userInputId].Price * quantitySelected} {store.Balance}");
+            Console.WriteLine();
             DisplaySubMenu();
-        }
-        private bool CheckStock(bool containsKey)
-        {
-            if (containsKey)
-            {
-                return true;
-            }
-            else
-            {
-                Console.WriteLine("Product not found");
-                return false;
-            }
-        }
-        private bool checkAvailibility(bool enoughAvailibity)
-        {
-            if (enoughAvailibity)
-            {
-                return true;
-            }
-            else
-            {
-                Console.WriteLine("Sorry the product is sold out");
-                return false;
-            }
-        }
-        private bool EnoughStock(bool enoughStock)
-        {
-            if (enoughStock)
-            {
-                return true;
-            }
-            else
-            {
-                Console.WriteLine("Insufficient stock");
-                return false;
-            }
-        }
-        private bool Transaction(bool enoughMoney)
-        {
-            if (enoughMoney)
-            {
-                return true;
-            }
-            else
-            {
-                Console.WriteLine("Insufficient funds");
-                return false;
-            }
         }
         public void CompleteSale()
         {
-            try
+            Console.WriteLine();
+            if (store.shoppingCart.Count == 0)
             {
-
-                Console.WriteLine();
-                if (store.shoppingCart.Count == 0)
-                {
-                    Console.WriteLine("No items in Cart");
-                }
-                else
-                {
-                    decimal totalAmountPurchased = 0;
-                    for (int i = 0; i < store.shoppingCart.Count; i++)
-                    {
-                        totalAmountPurchased += (store.shoppingCart[i].Price * store.NumberSold[i]);
-                        Console.WriteLine($"{store.NumberSold[i]} {store.shoppingCart[i].Name} {store.SortCandies(i, store)} ${store.shoppingCart[i].Price} ${store.shoppingCart[i].Price * store.NumberSold[i]}");
-                    }
-                    audit.WritingAudit($"{DateTime.UtcNow} Change Given: ${store.Balance} $0.00");
-                    Console.WriteLine();
-                    Console.WriteLine();
-                    Console.WriteLine($"Total: ${totalAmountPurchased}");
-                    Console.WriteLine();
-                    Console.WriteLine();
-                    Console.WriteLine($"Change: ${store.Balance}");
-                    Console.WriteLine($"{store.ReturnChange()}");
-                }
+                Console.WriteLine("No items in Cart");
             }
-            catch (IOException ex)
+            else
             {
-                Console.WriteLine("Error: " + ex.Message);
+                decimal totalAmountPurchased = 0;
+                for (int i = 0; i < store.shoppingCart.Count; i++)
+                {
+                    totalAmountPurchased += (store.shoppingCart[i].Price * store.NumberSold[i]);
+                    Console.WriteLine($"{store.NumberSold[i]} {store.shoppingCart[i].Name} {store.SortCandies(i, store)} ${store.shoppingCart[i].Price} ${store.shoppingCart[i].Price * store.NumberSold[i]}");
+                }
+                audit.WritingAudit($"{DateTime.UtcNow} Change Given: ${store.Balance} $0.00");
+                Console.WriteLine();
+                Console.WriteLine();
+                Console.WriteLine($"Total: ${totalAmountPurchased}");
+                Console.WriteLine();
+                Console.WriteLine();
+                Console.WriteLine($"Change: ${store.Balance}");
+                Console.WriteLine($"{store.ReturnChange()}");
             }
         }
 

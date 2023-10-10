@@ -26,12 +26,53 @@ namespace Capstone.Classes
         {
             return Balance += deposit;
         }
-        public Item[] ShowInventory()
+        public bool CheckBalance(decimal deposit)
         {
-            List<Item> itemsArray = inventoryAccess.MakeInventory();
-            return itemsArray.ToArray();
+            bool checkBalance = false;
+            if (deposit + Balance < 1000.00m && deposit <= 100.00m && deposit >= 1)
+            {
+                checkBalance = true;
+            }
+            return checkBalance;
+        }
+        public bool CheckInventory(Dictionary<string, Item> inventory, string userInputId)
+        {
+            bool checkAvailability = false;
+            if (inventory.ContainsKey(userInputId))
+            {
+                checkAvailability = true;
+            }
+            return checkAvailability;
 
         }
+        public bool CheckAvailability(Dictionary<string, Item> inventory, string userInputId)
+        {
+            bool checkAvailability = false;
+            if(inventory[userInputId].Quantity > 0 && inventory[userInputId].Quantity <= 100)
+            {
+                checkAvailability = true;
+            }
+            return checkAvailability;
+        }
+        public bool EnoughStock(Dictionary<string, Item> inventory, string userInputId, int quantitySelected)
+        {
+            bool enoughStock = false;
+            if(quantitySelected <= inventory[userInputId].Quantity)
+            {
+                enoughStock = true;
+            }
+            return enoughStock;
+        }
+        public bool EnoughMoney(Dictionary<string, Item> inventory, string userInputId, int quantitySelected)
+        {
+            bool enoughMoney = false;
+            if (Balance > (inventory[userInputId].Price * quantitySelected) && Balance > 0)
+            {
+                enoughMoney = true;
+            }
+            return enoughMoney;
+        }
+
         public Dictionary<string, Item> StoreInventory()
         {
             Dictionary<string, Item> storeInventory = new Dictionary<string, Item>();
