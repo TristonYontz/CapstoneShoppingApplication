@@ -24,12 +24,20 @@ namespace Capstone.Classes
 
        
        
-        public override string ToString()
+       public override string ToString()
         {
             string id = Id;
             string name = Name;
             string isWrapped = IsWrapped;
-            string quantity = $"{ Quantity }";
+            string quantity = "";
+            if (Quantity == 0)
+            {
+                quantity = quantity + "Sold Out";
+            }
+            else
+            {
+                quantity = quantity + $"{Quantity}";
+            }
             string price = $"{ Price }";
             return id.PadRight(5) + name.PadRight(20) + isWrapped.PadRight(10) + quantity.PadRight(10) + price.PadRight(10);
         }

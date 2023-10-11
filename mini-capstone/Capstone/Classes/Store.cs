@@ -146,7 +146,7 @@ namespace Capstone.Classes
             {
                 return "Sour Flavored Candies";
             }
-            else if (item.shoppingCart[candy].Id.Substring(0, 1) == "H")
+            else if (item.shoppingCart[candy].Id.Substring(0, 1) == "L")
             {
                 return "Licorce and Jellies";
             }
